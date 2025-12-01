@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SolfaSense — Dashboard</title>
+
+  <!-- Dark-mode toggle 
+  <script defer>
+    const saved = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', saved);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('themeToggle');
+      if (!btn) return;
+      btn.textContent = saved === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+      btn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        btn.textContent = next === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+      });
+    });
+  </script>
+  -->
+  <script src="/theme.js" defer></script>
+
+
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/tuner.css" />
+
+  <!-- Audio / tuner libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.39/Tone.min.js" defer></script>
+  <script src="/api.js" defer></script>
+  <script src="/audioEngine.js" defer></script>
+  <script src="/piano.js" defer></script>
+  <script src="/midi.js" defer></script>
+  <script src="/tune.js" defer></script>
+  <!-- Dashboard logic (progress, suggestions, 
+   logout) -->
+  <script src="/dashboard.js" defer></script>
+</head>
+
+<body>
+<header class="navbar">
+  <div class="navbar-inner container">
+    <div class="brand"><div class="logo"></div><h1>BatiTone</h1></div>
+    <div class="row">
+      <span id="who" class="badge"></span>
+      <button id="pianoToggle" class="btn ghost" title="Piano">🎹</button>
+      <button id="popTunerBtn" class="btn ghost" title="Tuner">🎸</button>
+      <a class="btn ghost" href="/score.html">Score Practice</a>
+      <a class="btn ghost" href="/practice.html?track=beginner">Practice</a>
+      <a class="btn ghost" href="/exam.html">Exam</a>
+      <button id="themeToggle" class="btn">🌙 Dark Mode</button>
+      <button id="logout" class="btn warn">Logout</button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <section class="card">
+    <h2>Welcome back, <span id="name"></span> 👋</h2>
+    <p class="helper">Here’s your current exam + practice snapshot.</p>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <h4>Total Attempts</h4>
+        <div id="kpiAttempts" class="kpi">—</div>
+      </div>
+      <div class="stat-card">
+        <h4>Overall Accuracy</h4>
+        <div id="kpiAcc" class="kpi">—</div>
+        <div class="progress">
+          <span id="accBar" style="width:0%"></span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <h4>Unlocks</h4>
+        <span id="unlockBadge" class="badge">—</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>By Module</h3>
+    <div id="moduleGrid" class="stat-grid"></div>
+  </section>
+
+   
+</div>
+
+<!-- modal used by dashboard.js -->
+<div class="modal" id="progressModal">
+  <div class="modal-card">
+    <div class="row" style="justify-content:space-between">
+      <h3>Progress Overview</h3>
+      <button class="btn ghost" id="closeProgress">Close</button>
+    </div>
+    <div id="progressBody"></div>
+  </div>
+</div>
+
+<!-- Piano panel -->
+<section id="pianoSection" class="piano-card hidden">
+  <div class="piano-head">
+    <span class="title">Piano</span>
+    <button id="pianoClose" class="ctrl" title="Hide">×</button>
+  </div>
+  <div class="piano-body">
+    <div class="piano-toolbar">
+      <div class="kv">End Octave
+        <select id="octSel">
+          <option>2</option>
+          <option>3</option>
+          <option selected>4</option>
+          <option>5</option>
+          <option>6</option>
+        </select>
+      </div>
+      <div class="kv">Octaves
+        <select id="octCount">
+          <option>1</option>
+          <option selected>2</option>
+          <option>3</option>
+          <option>4</option>
+        </select>
+      </div>
+      <div class="kv">Sustain <input type="checkbox" id="sustain"></div>
+      <div class="kv">Volume
+        <input type="range" id="volume" min="-30" max="0" value="-6" class="range">
+      </div>
+      <div class="kv">
+        <button id="midiBtn" class="btn ghost">Enable MIDI</button>
+      </div>
+    </div>
+    <div id="pianoCollapsible" class="piano"></div>
+  </div>
+</section>
+
+<!-- Mini tuner -->
+<div id="miniTuner" class="mini-tuner hidden">
+  <div class="resize-handle"></div>
+  <div class="mini-head">
+    <span class="title">Tuner</span>
+    <div class="ctrl"><button id="mtClose" title="Close">×</button></div>
+  </div>
+  <div class="mini-body">
+    <div class="str-pad">
+      <button class="str-btn active" data-midi="40" data-name="E2">E2</button>
+      <button class="str-btn" data-midi="45" data-name="A2">A2</button>
+      <button class="str-btn" data-midi="50" data-name="D3">D3</button>
+      <button class="str-btn" data-midi="55" data-name="G3">G3</button>
+      <button class="str-btn" data-midi="59" data-name="B3">B3</button>
+      <button class="str-btn" data-midi="64" data-name="E4">E4</button>
+    </div>
+    <div class="gauge-box">
+      <svg viewBox="0 0 200 100"><g id="mtGauge"></g></svg>
+    </div>
+    <div class="readouts">
+      <span id="mtNote">—</span>
+      <span id="mtCents">—</span>
+      <span id="mtHz">—</span>
+    </div>
+    <div class="foot">
+      <button id="mtMic" class="mic-btn">Mic</button>
+      <label class="auto-chk"><input type="checkbox" id="mtAuto"> Auto</label>
+    </div>
+  </div>
+</div>
+
+<!-- Circle of fifths overlay -->
+<div id="circleOverlay" class="overlay" style="display:none;">
+  <div class="overlay-inner">
+    <img src="/img/circle.png" class="circle-spin">
+  </div>
+</div>
+
+<!-- Local UI wiring for piano / tuner / circle -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const pianoToggle   = document.getElementById("pianoToggle");
+    const pianoSection  = document.getElementById("pianoSection");
+    const pianoClose    = document.getElementById("pianoClose");
+    const circleBtn     = document.getElementById("circleBtn");
+    const circleOverlay = document.getElementById("circleOverlay");
+    const popTunerBtn   = document.getElementById("popTunerBtn");
+    const miniTuner     = document.getElementById("miniTuner");
+
+    // Piano toggle
+    if (pianoToggle && pianoSection && pianoClose) {
+      pianoToggle.addEventListener("click", () => {
+        pianoSection.classList.toggle("hidden");
+      });
+      pianoClose.addEventListener("click", () => {
+        pianoSection.classList.add("hidden");
+      });
+      pianoSection.addEventListener("pointerdown", () => {
+        if (window.AudioEngine && typeof AudioEngine.ensure === "function") {
+          AudioEngine.ensure();
+        }
+      }, { once: true });
+    }
+
+    // Circle overlay
+    if (circleBtn && circleOverlay) {
+      circleBtn.addEventListener("click", () => {
+        circleOverlay.style.display = "flex";
+      });
+      circleOverlay.addEventListener("click", (e) => {
+        if (e.target === circleOverlay) {
+          circleOverlay.style.display = "none";
+        }
+      });
+    }
+
+    // Tuner show/hide
+    if (popTunerBtn && miniTuner) {
+      popTunerBtn.addEventListener("click", () => {
+        miniTuner.classList.toggle("hidden");
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

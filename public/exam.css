@@ -1,0 +1,159 @@
+.hero-card{text-align:center}
+.diff-toggle{
+  display:flex;
+  gap:.5rem;
+  justify-content:center;
+  margin:1rem 0;
+}
+.diff-btn{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:999px;
+  padding:.4rem 1rem;
+  font-size:.85rem;
+  color:#fff;
+  cursor:pointer;
+}
+.diff-btn.active{
+  background:#fff;
+  color:#0b0f14;
+  font-weight:600;
+}
+
+.topic-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:1.2rem;
+  margin:1.4rem 0
+}
+.topic-card{
+  padding:1.4rem;
+  border-radius:18px;
+  color:#fff;
+  cursor:pointer;
+  transition:transform .2s,box-shadow .2s,outline .2s;
+  background:linear-gradient(135deg,var(--bg-soft),var(--card));
+  outline:2px solid transparent;
+}
+.topic-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 12px 30px rgba(0,0,0,.4)
+}
+.topic-card.selected{
+  outline:2px solid var(--accent,#60a5fa);
+  box-shadow:0 16px 40px rgba(0,0,0,.6)
+}
+.topic-card.note   {border:2px solid #60a5fa}
+.topic-card.interval{border:2px solid #a78bfa}
+.topic-card.melody {border:2px solid #34d399}
+.topic-card.chord  {border:2px solid #f59e0b}
+.topic-card.rhythm {border:2px solid #ef4444}
+.emoji{font-size:2.2rem;margin-bottom:.4rem}
+.back-btn{margin-right:auto}
+.hidden{display:none}
+
+/* modal */
+.q-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.65);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:3000
+}
+.q-modal.show{display:flex}
+.q-modal-card{
+  width:min(820px,96%);
+  max-height:2000vh;
+  background:var(--glass);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:1.2rem;
+  box-shadow:0 25px 70px rgba(0,0,0,.6);
+  overflow:auto
+}
+.q-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.ctrl{width:28px;height:28px;border-radius:8px;border:none;background:#1a1f2a;color:#9eb1d0;font-size:16px;cursor:pointer}
+.ctrl:hover{background:#242b3d}
+#qBody{min-height:200px}
+.q-foot{display:flex;gap:.8rem;margin-top:1rem}
+.feedback{min-height:2rem;font-size:1rem;margin-top:.8rem}
+
+/* answers */
+.answer-block{
+  display:flex;
+  flex-direction:column;
+  gap:.5rem;
+}
+.answer-line{
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  padding:.6rem .8rem;
+  border-radius:10px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  cursor:pointer;
+  font-size:.95rem;
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  max-width:100%;
+}
+.answer-line::-webkit-scrollbar{
+  height:4px;
+}
+.ans-text{display:inline-flex;gap:.25rem;flex-wrap:nowrap}
+
+/* note styling */
+.note-token{
+  display:inline-flex;
+  align-items:flex-start;
+  gap:2px;
+  font-size:1rem;
+  line-height:1;
+}
+.note-acc{
+  font-size:.6em;
+  vertical-align:top;
+  position:relative;
+  top:-0.25em;
+}
+.note-oct{
+  font-size:.6em;
+  opacity:.85;
+  align-self:flex-end;
+}
+.seq-sep{
+  opacity:.4;
+  padding:0 .25rem;
+}
+
+/* marking */
+.ans-correct{
+  background:rgba(52,211,153,.12);
+  border:1px solid rgba(52,211,153,.7);
+}
+.ans-wrong{
+  background:rgba(239,68,68,.12);
+  border:1px solid rgba(239,68,68,.7);
+}
+/* Add light mode styles for exam page elements */
+body[data-theme="light"] .topic-card {
+  border: 2px solid var(--border);
+  background: var(--glass);
+}
+
+body[data-theme="light"] .topic-card:hover {
+  background: var(--card);
+}
+
+body[data-theme="light"] .diff-pill {
+  border: 1px solid var(--border);
+  background-color: var(--glass);
+}
+
+body[data-theme="light"] .diff-pill:has(:checked) {
+  background-color: var(--accent);
+  color: var(--text);
+}

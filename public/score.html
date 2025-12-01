@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Score Practice — SolfaSense</title>
+  <link rel="stylesheet" href="/styles.css"/>
+
+  <!-- libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.39/Tone.min.js" defer></script>
+  <script src="https://unpkg.com/@tonejs/midi@2.0.28/build/Midi.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay@1.8.5/build/opensheetmusicdisplay.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
+ <script src="/theme.js" defer></script>
+
+  <style>
+    .score-page{padding:24px; max-width:1200px; margin:auto}
+    .drop-zone{
+      border:2px dashed #ffd54a; border-radius:16px; padding:50px;
+      text-align:center; cursor:pointer; transition:background .2s;
+      background:rgba(255,221,68,.05);
+    }
+    .drop-zone:hover{background:rgba(255,221,68,.1);}
+    .drop-zone.dragover{background:rgba(255,221,68,.15);}
+    .drop-zone .link{color:#ffd54a; text-decoration:underline; cursor:pointer;}
+
+    .progress-row{display:flex; align-items:center; gap:10px; margin-top:12px;}
+    .progress-row.hidden{display:none;}
+    progress{flex:1; height:8px; border-radius:4px;}
+
+    .score-controls{margin-top:16px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;}
+    .score-controls.hidden{display:none;}
+    .score-container{margin-top:16px; min-height:400px; background:#0b0f14; border-radius:16px; padding:16px; overflow:auto;}
+
+    .arc-yellow{fill:none; stroke:url(#yellowGrad); stroke-width:26; opacity:.95;}
+    .needle{transform-origin:100px 100px; transition:transform .08s cubic-bezier(.25,.8,.25,1);}
+    .needle-red{stroke:#ff4a4a; stroke-width:4; stroke-linecap:round; filter:drop-shadow(0 0 4px #ff6a6a);}
+    .needle-hub{fill:#ff4a4a;}
+  </style>
+</head>
+
+<body>
+<header class="navbar">
+  <div class="navbar-inner container">
+    <div class="brand"><div class="logo"></div><h1>Score Practice</h1></div>
+    <div class="row">
+      <a class="btn ghost" href="/dashboard.html">back</a>
+      <button id="themeToggle" class="btn">🌙 Dark Mode</button>
+      <a class="btn ghost" href="/practice.html">Practice</a>
+    </div>
+</header>
+
+<div class="container score-page">
+  <section class="card">
+    <h2>Upload Piano Score (PDF, MusicXML, MXL, MIDI)</h2>
+
+    <!-- drag-drop zone -->
+    <div id="dropZone" class="drop-zone">
+      <input type="file" id="scoreFile" accept=".pdf,.xml,.musicxml,.mxl,.mid,.midi" hidden>
+      <p>Drag file here or <span class="link">browse</span></p>
+    </div>
+
+    <!-- progress bar (shown only during PDF conversion) -->
+    <div id="progressRow" class="progress-row hidden">
+      <label id="progressLabel">Converting PDF…</label>
+      <progress id="progressBar" value="0" max="100"></progress>
+    </div>
+
+    <!-- playback controls (hidden until score ready) -->
+    <div id="scoreControls" class="score-controls hidden">
+      <div class="row">
+        <label>Tempo
+          <input id="tempo" type="range" min="40" max="220" value="90">
+          <span id="tempoVal">90</span>
+        </label>
+        <button id="playBtn" class="btn">▶ Play</button>
+        <button id="stopBtn" class="btn">⏹ Stop</button>
+        <button id="loopBtn" class="btn ghost">🔁 Loop</button>
+        <button id="countInBtn" class="btn ghost">Count-in</button>
+      </div>
+      <div class="row">
+        <label>Part
+          <select id="partSel"></select>
+        </label>
+        <span id="loopInfo" class="helper"></span>
+      </div>
+    </div>
+
+    <!-- notation canvas -->
+    <div id="scoreContainer" class="score-container"></div>
+  </section>
+</div>
+
+<script>
+/* ===== SCORE PRACTICE  (PDF / XML / MXL / MIDI)  ===== */
+(() => {
+  const $  = (s,r=document)=>r.querySelector(s);
+  const $$ = (s,r=document)=>r.querySelectorAll(s);
+
+  const dropZone   = $("#dropZone");
+  const fileInput  = $("#scoreFile");
+  const progress   = $("#progressRow");
+  const label      = $("#progressLabel");
+  const bar        = $("#progressBar");
+  const controls   = $("#scoreControls");
+  const tempo      = $("#tempo");
+  const tempoVal   = $("#tempoVal");
+  const playBtn    = $("#playBtn");
+  const stopBtn    = $("#stopBtn");
+  const loopBtn    = $("#loopBtn");
+  const countInBtn = $("#countInBtn");
+  const partSel    = $("#partSel");
+  const loopInfo   = $("#loopInfo");
+  const host       = $("#scoreContainer");
+
+  let osmd=null, midi=null, sampler=null, loopStart=null, loopEnd=null, countIn=false;
+
+  /* ---- auto-load FREE Canon XML on first visit ---- */
+  window.addEventListener("DOMContentLoaded", ()=>{
+    loadXML("https://www.mutopiaproject.org/ftp/PachelbelJ/Canon/Canon.xml");
+  });
+
+  /* ---- drag-drop / browse ---- */
+  dropZone.onclick=()=>fileInput.click();
+  fileInput.onchange=e=>handleFile(e.target.files[0]);
+  dropZone.ondragover=e=>{ e.preventDefault(); dropZone.classList.add("dragover"); };
+  dropZone.ondragleave=()=>dropZone.classList.remove("dragover");
+  dropZone.ondrop=e=>{
+    e.preventDefault(); dropZone.classList.remove("dragover");
+    handleFile(e.dataTransfer.files[0]);
+  };
+
+  /* ---- file handler  (PDF re-enabled) ---- */
+  async function handleFile(file){
+    if (!file) return;
+    const name=file.name.toLowerCase();
+    const isPDF=name.endsWith(".pdf");
+    const isXML=name.endsWith(".xml")||name.endsWith(".musicxml")||name.endsWith(".mxl");
+    const isMIDI=name.endsWith(".mid")||name.endsWith(".midi");
+
+    if (isPDF) return await uploadPDF(file);   //  ←  PDF back
+    if (isXML) return await uploadXML(file);
+    if (isMIDI) return await uploadMIDI(file);
+    alert("Please drop PDF, MusicXML (.xml/.mxl) or MIDI (.mid)");
+  }
+
+  /* ---- upload XML ---- */
+  async function uploadXML(file){
+    const fd=new FormData(); fd.append("file", file);
+    const res=await fetch("/api/scores/upload",{method:"POST", body:fd});
+    const json=await res.json();
+    if (!json.ok) return alert(json.error||"Upload failed");
+    await loadXML(json.xmlUrl);
+  }
+  /* ---- upload MIDI ---- */
+  async function uploadMIDI(file){
+    const buf=await file.arrayBuffer();
+    midi=new Midi(buf);
+    renderMidi(midi);
+  }
+  /* ---- NEW  PDF  upload  (progress bar) ---- */
+  async function uploadPDF(file){
+    progress.classList.remove("hidden");
+    label.textContent="Converting PDF…";
+    bar.value=0;
+
+    const fd=new FormData(); fd.append("file", file);
+    const res=await fetch("/api/scores/upload-pdf",{method:"POST", body:fd});
+    const json=await res.json();
+    progress.classList.add("hidden");
+
+    if (!json.ok) return alert(json.error||"Conversion failed – please upload MusicXML");
+    await loadXML(json.xmlUrl);
+  }
+
+  /* ---- load XML → OSMD ---- */
+  async function loadXML(url){
+    const xml=await fetch(url).then(r=>r.text());
+    if (!osmd){
+      osmd=new opensheetmusicdisplay.OpenSheetMusicDisplay(host,{backend:"svg", drawTitle:false});
+    }
+    await osmd.load(xml);
+    osmd.render();
+    buildPartList();
+    controls.classList.remove("hidden");
+    midi=osmd.Sheet.musicPartwiseToMidi(); // OSMD helper
+    buildControls();
+  }
+  /* ---- render MIDI → OSMD ---- */
+  async function renderMidi(midiData){
+    if (!osmd){
+      osmd=new opensheetmusicdisplay.OpenSheetMusicDisplay(host,{backend:"svg", drawTitle:false});
+    }
+    // convert MIDI → MusicXML on-the-fly (OSMD helper)
+    const xml=midiData.toMusicxml();
+    await osmd.load(xml);
+    osmd.render();
+    buildPartList();
+    controls.classList.remove("hidden");
+    buildControls();
+  }
+
+  /* ---- build part selector ---- */
+  function buildPartList(){
+    partSel.innerHTML="";
+    osmd.Sheet.Instruments.forEach((inst,i)=>{
+      const opt=document.createElement("option");
+      opt.value=i; opt.textContent=inst.Name;
+      partSel.appendChild(opt);
+    });
+  }
+
+  /* ---- build Tone.js sampler & controls ---- */
+  function buildControls(){
+    if (sampler) sampler.dispose();
+    sampler=new Tone.Sampler({
+      urls:{C4:"C4.mp3","D#4":"Ds4.mp3","F#4":"Fs4.mp3",A4:"A4.mp3"},
+      baseUrl:"https://tonejs.github.io/audio/salamander/",
+      onload:()=>console.log("sampler ready")
+    }).toDestination();
+
+    tempo.oninput=e=>{
+      tempoVal.textContent=e.target.value;
+      if (midi) Tone.Transport.bpm.value=e.target.value;
+    };
+    tempoVal.textContent=tempo.value;
+
+    playBtn.onclick=()=>startPlayback();
+    stopBtn.onclick=()=>Tone.Transport.stop();
+    loopBtn.onclick=()=>toggleLoop();
+    countInBtn.onclick=()=>countIn=!countIn;
+  }
+
+  /* ---- playback with cursor & loop ---- */
+  function startPlayback(){
+    if (!midi) return;
+    Tone.Transport.cancel(); Tone.Transport.stop();
+    const track=midi.tracks[partSel.value]||midi.tracks[0];
+    if (!track.notes.length) return alert("No notes in selected part");
+
+    if (countIn) metronomeStart(midi.header.tempos[0]?.bpm||90,1);
+
+    // schedule notes + cursor
+    track.notes.forEach(n=>{
+      Tone.Transport.schedule(time=>{
+        sampler.triggerAttackRelease(n.name, n.duration, time, n.velocity);
+        if (osmd.cursor) osmd.cursor.next();
+      }, n.time);
+    });
+
+    // loop
+    if (loopStart!==null && loopEnd!==null){
+      Tone.Transport.scheduleRepeat(time=>{
+        if (time>=loopEnd) Tone.Transport.seconds=loopStart;
+      },0.01);
+    }
+
+    Tone.Transport.start("+0.2");
+  }
+
+  /* ---- metronome count-in ---- */
+  function metronomeStart(bpm,bars){
+    Tone.Transport.bpm.value=bpm;
+    let count=0;
+    const id=Tone.Transport.scheduleRepeat(time=>{
+      const osc=new Tone.Oscillator(880,"sine").toDestination();
+      osc.start(time).stop(time+0.05);
+      count++;
+      if (count>=bars*4) Tone.Transport.clear(id);
+    }, "8n");
+  }
+
+  /* ---- loop selection ---- */
+  function toggleLoop(){
+    if (loopBtn.classList.contains("on")){
+      loopBtn.classList.remove("on");
+      loopStart=loopEnd=null; loopInfo.textContent=""; return;
+    }
+    alert("Click the START bar, then the END bar to loop");
+    let pickingStart=true;
+    osmd.cursor.show();
+    osmd.cursor.Iterator.position=0;
+    loopBtn.classList.add("on");
+
+    host.onclick=e=>{
+      const measure=osmd.cursor.Iterator.currentMeasure;
+      if (!measure) return;
+      if (pickingStart){
+        loopStart=measure.AbsoluteTime;
+        pickingStart=false;
+        loopInfo.textContent="Start set – click end bar";
+      }else{
+        loopEnd=measure.AbsoluteTime;
+        pickingStart=true; loopBtn.classList.remove("on");
+        loopInfo.textContent=`Loop: ${loopStart.toFixed(1)} → ${loopEnd.toFixed(1)} s`;
+      }
+    };
+  }
+
+  /* ---- helpers ---- */
+  function polar(cx,cy,r,a){return {x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)}}
+  function map(v,a,b,c,d){return (v-a)/(b-a)*(d-c)+c}
+})();
+</script>
+</body>
+</html>

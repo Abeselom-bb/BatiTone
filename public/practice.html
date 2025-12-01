@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Practice — SolfaSense</title>
+  
+  <!-- Dark-mode toggle
+<script defer>
+  const saved = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('themeToggle');
+    btn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      btn.textContent = next === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    });
+  });
+</script>
+ -->
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/tuner.css" />
+
+  <!-- libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.39/Tone.min.js" defer></script>
+  <script src="/api.js" defer></script>
+  <script src="/audioEngine.js" defer></script>
+  <script type="module" src="/practice.js" defer></script>
+  <script src="/piano.js" defer></script>
+  <script src="/midi.js" defer></script>
+  <script src="/tune.js" defer></script>
+  <script src="/theme.js" defer></script>
+
+
+  <!-- modules -->
+  <script src="/modules/core.js" type="module" defer></script>
+  <script src="/modules/note.js" type="module" defer></script>
+  <script src="/modules/interval.js" type="module" defer></script>
+  <script src="/modules/chord.js" type="module" defer></script>
+  <script src="/modules/rhythm.js" type="module" defer></script>
+  <script src="/modules/melody.js" type="module" defer></script>
+
+  <!-- driver --> 
+  <script src="/practice.js" type="module" defer></script>
+
+  <style>
+    .skill-row{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem}
+    .skill-btn{
+      flex:1 1 150px;min-width:140px;
+      padding:1rem .9rem;border-radius:16px;border:none;
+      cursor:pointer;text-align:left;color:#fff;font-weight:600;font-size:1rem;
+      display:flex;gap:.6rem;align-items:center;box-shadow:0 8px 20px rgba(0,0,0,.15);
+      transition:.12s;
+    }
+    .skill-btn small{display:block;font-weight:400;font-size:.7rem;opacity:.7}
+    .skill-btn.active{outline:3px solid rgba(255,255,255,.6);transform:translateY(-2px)}
+    .skill-note{background:#3b82f6}
+    .skill-interval{background:#8b5cf6}
+    .skill-melody{background:#22c55e}
+    .skill-chord{background:#f97316}
+    .skill-rhythm{background:#ef4444}
+    #choiceHost .answer{display:block;margin:.35rem 0;padding:.6rem .8rem;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid transparent;cursor:pointer;font-size:1.02rem}
+    #choiceHost .answer.selected{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.55)}
+    #choiceHost .answer.correct{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.6)}
+    #choiceHost .answer.wrong{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.55)}
+    .tiny-note{font-size:.7rem;color:var(--muted);margin-top:.3rem}
+    .rh-icon{font-size:1.25rem;margin-right:.35rem}
+  </style>
+</head>
+<body>
+<header class="navbar">
+  <div class="navbar-inner container">
+    <div class="brand"><div class="logo"></div><h1>Practice</h1></div>
+    <div class="row">
+      <button id="pianoToggle" class="btn ghost" title="Piano">🎹</button>
+      <button id="popTunerBtn" class="btn ghost" title="Tuner">🎸</button>
+      <button id="circleBtn" class="btn ghost">Circle of Fifths</button>
+      <button id="progressBtn" class="btn alt">Progress</button>
+       <a class="btn ghost" href="/exam.html">Exam</a>
+      <button id="themeToggle" class="btn">🌙 Dark Mode</button>
+      <a class="btn ghost" href="/dashboard.html">Back</a>
+      <button id="logoutBtn" class="btn warn">Logout</button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <!-- skill chooser -->
+  <section class="card">
+    <div class="skill-row" id="skillRow">
+      <button class="skill-btn skill-note active" data-skill="note">🎵 Note <small>name the sound</small></button>
+      <button class="skill-btn skill-interval" data-skill="interval">🎶 Interval <small>always from Do (C3)</small></button>
+      <button class="skill-btn skill-melody" data-skill="melody">🎼 Melody <small>starts on Do</small></button>
+      <button class="skill-btn skill-chord" data-skill="chord">🎹 Chord <small>root C3</small></button>
+      <button class="skill-btn skill-rhythm" data-skill="rhythm">🥁 Rhythm <small>pick the pattern</small></button>
+    </div>
+  </section>
+
+  <!-- question -->
+  <section class="card" style="margin-top:1rem">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <div>
+        <div class="badge" id="trackBadge">Note</div>
+        <div id="questionTitle">Press Start to hear the question.</div>
+        <div id="tinyNote" class="tiny-note">All ear drills for now start from C3 (Do).</div>
+      </div>
+      <div class="row" style="gap:.4rem">
+        <button id="startBtn" class="btn">Start</button>
+        <button id="playBtn" class="btn">▶ Replay</button>
+        <button id="submitBtn" class="btn primary">Submit</button>
+      </div>
+    </div>
+
+    <div id="choiceHost" style="margin-top:1rem"></div>
+    <div id="feedback" class="helper" style="margin-top:.6rem"></div>
+    <div id="stats" class="helper" style="margin-top:.3rem"></div>
+  </section>
+
+  <!-- piano -->
+  <section id="pianoSection" class="piano-card hidden" style="margin-top:1rem">
+    <div class="piano-head">
+      <span class="title">Piano</span>
+      <button id="pianoClose" class="ctrl" title="Hide">×</button>
+    </div>
+    <div class="piano-body">
+      <div class="piano-toolbar">
+        <div class="kv">End Octave
+          <select id="octSel">
+            <option>3</option><option selected>4</option><option>5</option><option>6</option>
+          </select>
+        </div>
+        <div class="kv">Octaves
+          <select id="octCount">
+            <option>1</option><option selected>2</option><option>3</option><option>4</option>
+          </select>
+        </div>
+        <div class="kv">Sustain <input type="checkbox" id="sustain"></div>
+        <div class="kv">Volume <input type="range" id="volume" min="-30" max="0" value="-6" class="range"></div>
+        <div class="kv"><button id="midiBtn" class="btn ghost">Enable MIDI</button></div>
+      </div>
+      <div id="pianoCollapsible" class="piano"></div>
+    </div>
+  </section>
+
+  <!-- tuner -->
+  <div id="miniTuner" class="mini-tuner">
+    <div class="resize-handle"></div>
+    <div class="mini-head">
+      <span class="title">Tuner</span>
+      <div class="ctrl"><button id="mtClose" title="Close">×</button></div>
+    </div>
+    <div class="mini-body">
+      <div class="str-pad">
+        <button class="str-btn active" data-midi="40" data-name="E2">E2</button>
+        <button class="str-btn" data-midi="45" data-name="A2">A2</button>
+        <button class="str-btn" data-midi="50" data-name="D3">D3</button>
+        <button class="str-btn" data-midi="55" data-name="G3">G3</button>
+        <button class="str-btn" data-midi="59" data-name="B3">B3</button>
+        <button class="str-btn" data-midi="64" data-name="E4">E4</button>
+      </div>
+      <div class="gauge-box">
+        <svg viewBox="0 0 200 100"><g id="mtGauge"></g></svg>
+      </div>
+      <div class="readouts">
+        <span id="mtNote">—</span>
+        <span id="mtCents">—</span>
+        <span id="mtHz">—</span>
+      </div>
+      <div class="foot">
+        <button id="mtMic" class="mic-btn">Mic</button>
+        <label class="auto-chk"><input type="checkbox" id="mtAuto"> Auto</label>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="circleOverlay" class="overlay" style="display:none;">
+  <div class="overlay-inner">
+    <img src="/img/circle.png" class="circle-spin">
+  </div>
+  
+</div>
+
+
+  <!-- progress modal -->
+  <div class="modal" id="progressModal">
+    <div class="modal-card wide">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h3>Your Practice Stats</h3>
+        <button class="btn ghost" id="closeProgress">Close</button>
+      </div>
+      <div id="progressBody"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

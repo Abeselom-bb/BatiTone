@@ -1,0 +1,115 @@
+# 🎧 SolfaSense – Ear-Training That Runs in Your Browser
+
+## What is it?
+A small web-app that trains your musical ear:  
+notes → intervals → chords → melodies → rhythm.  
+Teachers can create classes, give homework, and see reports.  
+Everything happens in Chrome / Edge / Firefox – no install.
+
+---
+
+## 1. What You Need First
+| Thing | Windows | Mac |
+|---|---|---|
+| Node.js 20 (or newer) | [Download](https://nodejs.org) | same |
+| Git | [Download](https://git-scm.com) | `git` is built-in |
+| Text editor | VS Code / Notepad++ | VS Code / whatever |
+| MongoDB | free Atlas cloud DB is easiest → [5-min guide](https://www.mongodb.com/basics/create-database) |
+
+---
+
+## 2. Get the Code & Run (same steps on both OS)
+1. Open **Terminal** (Mac) or **PowerShell** (Win).
+2. Clone and enter folder:
+   ```bash
+   git clone https://github.com/your-name/ear-training-pro.git
+   cd ear-training-pro
+   ```
+3. Install packages:
+   ```bash
+   npm install
+   ```
+4. Create a small settings file:
+   ```bash
+   cp .env.example .env        # Mac
+   copy .env.example .env      # Windows
+   ```
+   Edit `.env` with your real MongoDB string and any password you like:
+   ```
+   MONGO_URI=mongodb+srv://<user>:<pass>@cluster0.xxxx.mongodb.net/solfa?retryWrites=true&w=majority
+   JWT_SECRET=any-long-random-text
+   ```
+5. Start the server:
+   ```bash
+   npm run dev
+   ```
+   You should see:  
+   `http://localhost:3000`  
+   Open that link in your browser – done.
+
+---
+
+## 3. Folder Map (only the bits you touch)
+```
+ear-training-pro
+├── server.js              ← API entry point
+├── public/                ← whole front-end (plain JS, no build)
+│   ├── index.html         ← landing / login / register
+│   ├── dashboard.html     ← student home
+│   ├── practice.html      ← ear-training drills
+│   └── score.html         ← sheet-music practice
+├── routes/*.js            ← Express routes
+├── controllers/*.js       ← business logic
+├── models/*.js            ← MongoDB schemas
+└── uploads/               ← file drops (PDF, XML, MIDI)
+```
+
+---
+
+## 4. As a Student (no install)
+1. Open the link (localhost:3000 if local, or the teacher’s live URL).
+2. Register (name, email, password).
+3. Choose **Student** role.
+4. Hit **Practice** – start with Note drills.
+5. Pass 3 levels to unlock Intervals, then Melody, Chords, Rhythm.
+
+**Tip:** use the on-screen piano, your MIDI keyboard, or the mic tap-pad for rhythm.
+
+---
+
+## 5. As a Teacher
+1. Register but pick **Teacher** role.
+2. Dashboard → **Create Classroom** → copy the 6-letter code.
+3. Give students the code – they join via **Enroll** button.
+4. **Create Assignment**: pick type (notes, chords…), level, number of questions, optional deadline.
+5. **Reports** shows each student’s accuracy and attempts.
+
+---
+
+## 6. Uploading Sheet Music (PDF / XML / MIDI)
+Drag a file onto the **Score Practice** page:
+- PDF → auto-converts to MusicXML (needs no extra setup on Mac; Windows must install [PdfToMusic Pro](https://www.myriad-online.com/en/products/pdftomusicpro.htm) once).
+- XML / MXL / MIDI → instant.
+
+Then play, loop, slow-down, or practice with the cursor.
+
+---
+
+## 7. Common Gotchas
+| Problem | Fix |
+|---|---|
+| `npm` not found | Install Node.js 20+ |
+| Mongo “connect failed” | Check your Atlas IP whitelist (add 0.0.0.0/0 for dev) |
+| PDF upload error | Windows: install PdfToMusic Pro, copy to `C:\opt\pdf-to-music-pro\PdfToMusic Pro.exe` |
+| No sound | Click anywhere first – browser blocks audio until user gesture |
+| 401 Unauthorized | Token expired → refresh page (auto logs you back to login) |
+
+---
+
+## 8. Shutting Down
+- **Terminal**: press `Ctrl-C` twice.
+- **Mongo Atlas**: free cluster pauses automatically.
+
+---
+
+That’s it – happy ear-training!

@@ -1,0 +1,83 @@
+# BatiTone – Quick Start for Friends  
+(works on macOS, Windows, Linux)
+
+## 1. What you need
+- Node.js **18 or newer**  
+  👉 [https://nodejs.org](https://nodejs.org) ← download and run the installer (next-next-finish on both Mac & PC).
+- Any terminal (Terminal.app on Mac, PowerShell / CMD on Windows).
+- A MongoDB database string (free one is fine → [https://www.mongodb.com/atlas](https://www.mongodb.com/atlas) ).
+
+## 2. Zip / folder
+- Keep **all files** exactly as you got them (especially `package.json`, `server.js`, `.env.example`, `uploads` folder, etc.).
+
+## 3. One-time setup
+1. Open terminal **inside the BatiTone folder** (drag the folder onto the terminal icon Mac, or Shift-right-click → “Open PowerShell window here” Windows).
+2. Install dependencies:  
+   ```bash
+   npm install
+   ```
+3. Copy the example environment:  
+   Mac / Linux:
+   ```bash
+   cp .env.example .env
+   ```
+   Windows (PowerShell):
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+4. Edit `.env` with any text editor:
+   ```
+   MONGO_URI=mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/batiTone
+   JWT_SECRET=any-phrase-you-like
+   ```
+   Save and close.
+
+## 4. Run the server
+Same terminal:
+```bash
+npm run dev
+```
+Wait for:  
+`http://localhost:3000` ← open this in Chrome / Safari / Edge.  
+That’s it — the site is live on your own laptop.
+
+## 5. Stop
+Press `Ctrl + C` (Mac & Windows) in the terminal to shut it down.
+
+
+## 6. How to use BatiTone (once the server is running)
+
+1. **Open the site**  
+   Go to [http://localhost:3000](http://localhost:3000) in Chrome, Safari, or Edge.
+
+2. **Create an account**  
+   Click “Sign Up,” pick Student or Teacher, fill in your name / email / password, then “Register.”  
+   (Teachers get a class-code maker; students get a code box.)
+
+3. **Student path – quick ear-training**  
+   - Log in → **Practice** → choose **Notes, Intervals, Melody, Chords,** or **Rhythm**.  
+   - Hit the big green **Start** button.  
+   - Listen, then:  
+     – *Sing* into your laptop mic, **or**  
+     – *Tap* the on-screen piano, **or**  
+     – *Plug in a USB MIDI keyboard* and play.  
+   - instant green = correct, red = try again.  
+   - After 7 short questions your score appears and the site auto-levels you up or down.
+
+4. **Score practice (optional)**  
+   - Click **Score Practice** → drag any **.xml / .mxl / .mid** file into the box.  
+   - The sheet music appears; press **Play**.  
+   - Click any two bars to **loop** them, drag the **tempo** slider to slow it down, or **mute** one hand so you can play it yourself.
+
+5. **Teacher path**  
+   - Log in → **Create Class** → copy the 6-letter code.  
+   - Give the code to students; they type it once and they’re enrolled.  
+   - Open **Dashboard** → green bars = good, red bars = needs help.  
+   - Hit **Export CSV** to download a ready-made grade-book.
+
+6. **Tiny tips**  
+   - Green loop bars = repeat section; count-in = gives you a one-bar warning.  
+   - Needle gauge = tuner for singing; flashes green + “ding” when you’re spot-on.  
+   - Works offline after first visit (cached sounds), but scores need Wi-Fi to save.
+
+Enjoy training your ears!

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>BatiTone — Learn by Ear</title>
+  <link rel="stylesheet" href="/styles.css"/>
+  <script src="/theme.js" defer></script>
+</head>
+
+
+<body>
+<header class="navbar">
+  <div class="navbar-inner container">
+    <div class="brand"><div class="logo"></div><h1>BatiTone ባቲ</h1></div>
+    <button id="themeToggle" class="btn ghost">🌙 Dark Mode</button>
+  </div>
+</header>
+
+<div class="container">
+  <section class="hero">
+    <div class="card">
+      <h2>Train your ear. Faster.</h2>
+      <p>Note & interval drills for beginners, melodic dictation for intermediates, and lush chord ID for advanced players.</p>
+
+      <ul class="perks">
+        <li>✅ Real piano samples (no beeps)</li>
+        <li>✅ USB-MIDI keyboard plug & play</li>
+        <li>✅ Mic pitch-gauge with instant green/red</li>
+        <li>✅ Loops, tempo & mute controls</li>
+        <li>✅ Auto-levels as you improve</li>
+        <li>✅ Teacher CSV export in 1 click</li>
+      </ul>
+
+      <div class="cta">
+        <button class="btn" id="toLogin">Sign in</button>
+        <a class="btn alt" href="/dashboard.html">Try dashboard</a>
+      </div>
+      <p class="helper">No downloads. Works in your browser.</p>
+    </div>
+
+    <!--  LOGIN / REGISTER CARD  -->
+    <div class="card">
+      <h3>Create account</h3>
+      <form id="registerForm">
+        <label>Name</label><input name="name" required>
+        <label>Email</label><input type="email" name="email" required>
+        <label>Password</label><input type="password" name="password" required>
+        <button class="btn" style="margin-top:8px;">Register</button>
+      </form>
+
+      <hr style="margin:14px 0;border:0;border-top:1px solid var(--border)">
+
+      <h3>Have an account?</h3>
+      <!-- LOGIN FORM (always visible) -->
+      <form id="loginForm">
+        <label>Email</label><input type="email" name="email" required>
+        <label>Password</label><input type="password" name="password" required>
+        <button class="btn" style="margin-top:8px;">Login</button>
+      </form>
+
+      <!--  FORGOT-LINK  -->
+      <p style="margin-top:8px;font-size:0.9rem">
+        <a href="#" id="forgotLink">Forgot password?</a>
+      </p>
+
+      <!--  FORGOT FORM (hidden until clicked)  -->
+      <form id="forgotForm" style="display:none;margin-top:12px;">
+        <input name="email" type="email" placeholder="Your account e-mail" required>
+        <button type="submit" class="btn ghost" style="margin-top:6px;">Send reset link</button>
+      </form>
+      <div id="forgotMsg" style="margin-top:6px;font-size:0.85rem;"></div>
+    </div>
+  </section>
+</div>
+
+
+<div id="resetMsg"></div>
+
+<!-- ======  SCRIPTS  ====== -->
+<script src="/api.js" defer></script>
+<script src="/audioEngine.js" defer></script>
+<script src="/app.js" defer></script>
+<script src="/forgot.js" defer></script><!-- NEW -->
+
+ 
+<section class="section alt">
+  <div class="container">
+    <h2>ለማን ነው BatiTone?</h2>
+    <p>🎧 ለጀማሪዎች፣ ለመካከለኛ ደረጃ ተማሪዎች፣ ለቤተክርስቲያን ባንድ እና ለመምህራን።</p>
+  </div>
+</section>
+<section class="section alt">
+  <div class="container">
+    <h2>ለማን ነው BatiTone?</h2>
+    <p>🎧 ለጀማሪዎች፣ ለመካከለኛ ደረጃ ተማሪዎች፣ ለቤተክርስቲያን ባንድ እና ለመምህራን።</p>
+  </div>
+</section>
+<section class="section alt">
+  <div class="container">
+    <h2>ለማን ነው BatiTone?</h2>
+    <p>🎧 ለጀማሪዎች፣ ለመካከለኛ ደረጃ ተማሪዎች፣ ለቤተክርስቲያን ባንድ እና ለመምህራን።</p>
+  </div>
+</section>
+
+
+
+
+<footer>© 2025 BatiTone</footer>
+</body>
+</html>

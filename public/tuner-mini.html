@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Mini Tuner</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Inter,system-ui,sans-serif}
+    body{background:#0b0f14;color:#e1e6f0;display:flex;flex-direction:column;align-items:center;padding:12px}
+    h3{font-size:16px;margin-bottom:8px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+    .str{padding:14px 0;border-radius:10px;border:2px solid #242b3d;background:#141824;color:#9eb1d3;font-size:20px;font-weight:700;cursor:pointer;transition:all .18s;text-align:center}
+    .str span{display:block;font-size:11px;font-weight:400;opacity:.7}
+    .str.active{border-color:#3d8bfd;background:#1f2a45}
+    .str.inTune{border-color:#34d399;background:#0f2922;color:#34d399;box-shadow:0 0 18px #34d39966}
+    .info{display:flex;justify-content:space-between;width:100%;font-size:13px;margin:8px 0}
+    .micBtn{width:100%;padding:8px;border-radius:10px;border:1px solid #2a3242;background:#1a1f2a;color:#d8dee8;cursor:pointer;font-weight:600}
+    .micBtn.on{background:#3d8bfd;border-color:#3d8bfd;color:#fff}
+  </style>
+</head>
+<body>
+  <h3>Mini Tuner</h3>
+  <div class="grid">
+    <button class="str" data-midi="40">E<span>82 Hz</span></button>
+    <button class="str" data-midi="45">A<span>110 Hz</span></button>
+    <button class="str" data-midi="50">D<span>147 Hz</span></button>
+    <button class="str" data-midi="55">G<span>196 Hz</span></button>
+    <button class="str" data-midi="59">B<span>247 Hz</span></button>
+    <button class="str" data-midi="64">E<span>330 Hz</span></button>
+  </div>
+
+  <div class="info">
+    <span id="note">—</span>
+    <span id="cent">—</span>
+    <span id="hz">—</span>
+  </div>
+
+  <button id="mic" class="micBtn">Mic</button>
+
+  <script>
+    /* ---------- mini tuner logic ---------- */
+    const NAMES=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+    const STR=[40,45,50,55,59,64];
+    let ctx,analyser,buf,stream,running=false,target=null;
+
+    const midiToHz=m=>440*Math.pow(2,(m-69)/12);
+    const hzToMidi=f=>69+12*Math.log2(f/440);
+
+    /* UI */
+    document.querySelectorAll('.str').forEach(b=>{
+      b.onclick=()=>{
+        document.querySelectorAll('.str').forEach(x=>x.classList.remove('active','inTune'));
+        b.classList.add('active');
+        target=+b.dataset.midi;
+      };
+    });
+
+    /* mic */
+    const micBtn=document.getElementById('mic');
+    async function start(){
+      ctx=new (window.AudioContext||window.webkitAudioContext)();
+      await ctx.resume();
+      stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      analyser=ctx.createAnalyser();
+      analyser.fftSize=2048;
+      buf=new Float32Array(analyser.frequencyBinCount);
+      ctx.createMediaStreamSource(stream).connect(analyser);
+      running=true; micBtn.textContent='On'; micBtn.classList.add('on');
+      loop();
+    }
+    function stop(){
+      running=false; if (stream) stream.getTracks().forEach(t=>t.stop()), stream=null;
+      if (ctx) ctx.close();
+      micBtn.textContent='Mic'; micBtn.classList.remove('on');
+    }
+    micBtn.onclick=()=>running?stop():start();
+
+    /* pitch */
+    function autoCorrelate(x,sr){
+      const L=x.length; let rms=0;
+      for (let i=0;i<L;i++) rms+=x[i]*x[i];
+      rms=Math.sqrt(rms/L); if (rms<0.01) return -1;
+      let bestK=-1,best=0;
+      for (let k=8;k<1024;k++){
+        let sum=0; for (let i=0;i<L-k;i++) sum+=x[i]*x[i+k];
+        if (sum>best) best=sum,bestK=k;
+      }
+      return bestK>0?sr/bestK:-1;
+    }
+    function loop(){
+      if (!running) return;
+      analyser.getFloatTimeDomainData(buf);
+      const hz=autoCorrelate(buf,ctx.sampleRate);
+      if (hz>0 && target!==null){
+        const est=Math.round(hzToMidi(hz));
+        const cents=Math.round(1200*Math.log2(hz/midiToHz(target)));
+        document.getElementById('note').textContent=NAMES[(est%12+12)%12]+(Math.floor(est/12)-1);
+        document.getElementById('cent').textContent=(cents>=0?'+':'')+cents+'¢';
+        document.getElementById('hz').textContent=hz.toFixed(1)+' Hz';
+        const active=document.querySelector('.str.active');
+        if (active) active.classList.toggle('inTune',Math.abs(cents)<=5);
+      }else{
+        document.getElementById('note').textContent='—';
+        document.getElementById('cent').textContent='—';
+        document.getElementById('hz').textContent='—';
+      }
+      requestAnimationFrame(loop);
+    }
+  </script>
+</body>
+</html>
