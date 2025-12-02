@@ -11,7 +11,7 @@
     if (!btn) return;
 
     if (!navigator.requestMIDIAccess) {
-      btn.textContent = "MIDI Not Supported";
+      btn.textContent = "MIDI only Supported on desktop Chrome";
       btn.disabled = true;
     } else {
       btn.textContent = "Enable MIDI";
