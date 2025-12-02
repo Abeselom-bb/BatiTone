@@ -6,6 +6,18 @@
 (function () {
   let midiLive = false;
   let midiAccessRef = null;
+   document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("midiBtn");
+    if (!btn) return;
+
+    if (!navigator.requestMIDIAccess) {
+      btn.textContent = "MIDI Not Supported";
+      btn.disabled = true;
+    } else {
+      btn.textContent = "Enable MIDI";
+      btn.disabled = false;
+    }
+  });
 
   // Map MIDI note number -> "C4", "F#3", etc.
   const NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
@@ -58,6 +70,7 @@
       if (btnEl) btnEl.textContent = "MIDI On ✅";
       return;
     }
+        if (btnEl) btnEl.textContent = "Requesting MIDI…";
 
     if (!navigator.requestMIDIAccess) {
       console.warn("Web MIDI not supported in this browser.");
