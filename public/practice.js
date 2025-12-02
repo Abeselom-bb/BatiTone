@@ -48,7 +48,22 @@ const $$ = (s) => document.querySelectorAll(s);
   // piano
   pianoToggle.onclick = () => pianoSection.classList.toggle("hidden");
   pianoClose.onclick  = () => pianoSection.classList.add("hidden");
-  pianoSection.addEventListener("pointerdown", () => AudioEngine.ensure(), { once: true });
+pianoSection.addEventListener(
+  "pointerdown",
+  async () => {
+    const status = document.getElementById("pianoStatus");
+    if (status) status.textContent = "Loading piano sounds…";
+
+    try {
+      await AudioEngine.ensure();  // load samples
+      if (status) status.textContent = "Piano ready";
+    } catch (e) {
+      console.error("AudioEngine.ensure error:", e);
+      if (status) status.textContent = "Error loading piano audio";
+    }
+  },
+  { once: true }
+);
   if ($("#midiBtn")) {
     $("#midiBtn").onclick = async () => {
       const ok = await MIDIInput.enable();
