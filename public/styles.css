@@ -702,3 +702,69 @@ html[data-theme="dark"] .skill-btn {
     align-items: center;
   }
 }
+/* ===== Mobile layout fixes ===== */
+@media (max-width: 700px) {
+  body {
+    font-size: 14px;
+  }
+
+  .container {
+    padding: 16px 12px;
+  }
+
+  /* Stack the two hero cards on top of each other */
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .hero .card {
+    padding: 16px;
+  }
+
+  /* Make forms/buttons easier to tap */
+  form input,
+  form button,
+  .btn {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Navbar: stack and wrap */
+  .navbar-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .navbar-inner .row {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .navbar-inner .row .btn,
+  .navbar-inner .row a.btn {
+    flex: 1 1 48%;
+  }
+
+  /* Piano: allow horizontal scroll on small screens */
+  .piano {
+    width: 100%;
+    overflow-x: auto;
+    display: block;
+    padding-bottom: 10px;
+  }
+
+  .piano::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  /* Cards on dashboard/practice pages */
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 16px;
+  }
+}
