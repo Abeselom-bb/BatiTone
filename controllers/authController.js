@@ -55,6 +55,12 @@ export async function register(req, res) {
       role: role === "teacher" ? "teacher" : "student",
       // isVerified is ignored; user can log in immediately
     });
+    try {
+  await sendVerificationEmail(email);
+} catch (e) {
+  console.log("Email error:", e.message);
+}
+
 
     return res
       .status(201)
