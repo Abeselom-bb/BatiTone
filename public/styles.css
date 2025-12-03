@@ -773,18 +773,50 @@ html[data-theme="dark"] .skill-btn {
   font-size: 12px;
   color: #888;
 }
-/* Piano: keep inside container, optional horizontal scroll */
-.piano-card .piano {
-  overflow: hidden;
+/* Dashboard piano layout */
+.piano-card {
+  position: static;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  margin-top: 1.5rem;
+  border-radius: 24px;
 }
 
-/* When scroll-mode is on: allow horizontal scroll and disable key clicks */
+/* Piano stays inside container; default: can scroll a bit but still plays */
+.piano-card .piano {
+  max-width: 100%;
+  overflow-x: auto;      /* extra keys are scrollable, not hanging */
+  overflow-y: hidden;
+  touch-action: pan-x;   /* swipe left/right to move keys */
+}
+
+/* When scroll-mode is on: easier scrolling, no accidental note triggering */
 .piano-card.scroll-mode .piano {
-  overflow-x: auto;
-  touch-action: pan-x;
   cursor: grab;
 }
 
 .piano-card.scroll-mode .piano .key {
-  pointer-events: none; /* touching keys scrolls only */
+  pointer-events: none;  /* touching keys scrolls only */
+}
+/* Mobile: keep top nav in one horizontal row with sideways scroll */
+@media (max-width: 768px) {
+  .navbar-inner .row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-block: 0.5rem;
+  }
+
+  .navbar-inner .row .btn,
+  .navbar-inner .row a.btn,
+  .navbar-inner .row #who {
+    flex: 0 0 auto;        /* no full-width stacking */
+    width: auto;
+    min-width: auto;
+    white-space: nowrap;   /* don’t wrap text */
+  }
 }
