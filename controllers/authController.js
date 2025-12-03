@@ -4,7 +4,11 @@ import pkg from "validator";
 const { isEmail } = pkg;
 
 import User from "../models/User.js";
-import { sendPasswordResetEmail } from "../utils/mailer.js";
+import {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+} from "../utils/mailer.js";
+
 import { isDisposable } from "../utils/disposable.js";
 
 // helper: sign auth token
@@ -48,23 +52,26 @@ export async function register(req, res) {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    await User.create({
+        await User.create({
       name,
       email: email.toLowerCase(),
       passwordHash,
       role: role === "teacher" ? "teacher" : "student",
-      // isVerified is ignored; user can log in immediately
+      // user can log in immediately
     });
-    try {
-  await sendVerificationEmail(email);
-} catch (e) {
-  console.log("Email error:", e.message);
-}
 
+    // send welcome email (non-blocking)
+    try {
+      await sendVerificationEmail(email.toLowerCase());
+    } catch (err) {
+      console.error("Error sending welcome email:", err);
+    }
 
     return res
       .status(201)
       .json({ message: "Account created. You can log in now." });
+
+
   } catch (err) {
     console.error("register error:", err);
     return res
