@@ -820,3 +820,32 @@ html[data-theme="dark"] .skill-btn {
     white-space: nowrap;   /* don’t wrap text */
   }
 }
+/* === FINAL OVERRIDE: mobile navbar stays horizontal with scroll === */
+@media (max-width: 768px) {
+  header.navbar .navbar-inner {
+    flex-direction: row;          /* undo the column layout */
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* navbar button row: one horizontal strip with sideways scroll */
+  header.navbar .navbar-inner .row {
+    display: flex;
+    flex-direction: row;          /* force row, not column */
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-block: 0.5rem;
+  }
+
+  header.navbar .navbar-inner .row .btn,
+  header.navbar .navbar-inner .row a.btn,
+  header.navbar .navbar-inner .row #who {
+    flex: 0 0 auto;              /* no stretching */
+    width: auto;
+    min-width: auto;
+    white-space: nowrap;         /* keep labels in one line */
+  }
+}
