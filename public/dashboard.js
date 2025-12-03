@@ -78,3 +78,11 @@
     location.href = "/";
   };
 })();
+
+    // Piano scroll mode
+    if (pianoScrollBtn && pianoSection) {
+      pianoScrollBtn.addEventListener("click", () => {
+        const isScroll = pianoSection.classList.toggle("scroll-mode");
+        pianoScrollBtn.textContent = isScroll ? "Play Keys" : "Scroll Keys";
+      });
+    }

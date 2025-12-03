@@ -89,6 +89,33 @@
 </header>
 
 <div class="container">
+  <!-- piano -->
+  <section id="pianoSection" class="piano-card hidden" style="margin-top:1rem">
+    <div class="piano-head">
+      <span class="title">Piano</span>
+      <button id="pianoClose" class="ctrl" title="Hide">×</button>
+    </div>
+    <div class="piano-body">
+      <div class="piano-toolbar">
+        <div class="kv">End Octave
+          <select id="octSel">
+            <option>3</option><option selected>4</option><option>5</option><option>6</option>
+          </select>
+        </div>
+        <div class="kv">Octaves
+          <select id="octCount">
+            <option>1</option><option selected>2</option><option>3</option><option>4</option>
+          </select>
+        </div>
+        <div class="kv">Sustain <input type="checkbox" id="sustain"></div>
+        <div class="kv">Volume <input type="range" id="volume" min="-30" max="0" value="-6" class="range"></div>
+        <div class="kv"><button id="midiBtn" class="btn ghost">Enable MIDI</button></div>
+</div>
+<div id="pianoCollapsible" class="piano"></div>
+<div id="pianoStatus" class="piano-status">Tap the keyboard to load sounds…</div>
+
+    </div>
+  </section>
   <!-- skill chooser -->
   <section class="card">
     <div class="skill-row" id="skillRow">
@@ -120,33 +147,7 @@
     <div id="stats" class="helper" style="margin-top:.3rem"></div>
   </section>
 
-  <!-- piano -->
-  <section id="pianoSection" class="piano-card hidden" style="margin-top:1rem">
-    <div class="piano-head">
-      <span class="title">Piano</span>
-      <button id="pianoClose" class="ctrl" title="Hide">×</button>
-    </div>
-    <div class="piano-body">
-      <div class="piano-toolbar">
-        <div class="kv">End Octave
-          <select id="octSel">
-            <option>3</option><option selected>4</option><option>5</option><option>6</option>
-          </select>
-        </div>
-        <div class="kv">Octaves
-          <select id="octCount">
-            <option>1</option><option selected>2</option><option>3</option><option>4</option>
-          </select>
-        </div>
-        <div class="kv">Sustain <input type="checkbox" id="sustain"></div>
-        <div class="kv">Volume <input type="range" id="volume" min="-30" max="0" value="-6" class="range"></div>
-        <div class="kv"><button id="midiBtn" class="btn ghost">Enable MIDI</button></div>
-</div>
-<div id="pianoCollapsible" class="piano"></div>
-<div id="pianoStatus" class="piano-status">Tap the keyboard to load sounds…</div>
-
-    </div>
-  </section>
+  
 
   <!-- tuner -->
   <div id="miniTuner" class="mini-tuner">
